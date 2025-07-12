@@ -1,6 +1,6 @@
 const videos = [document.getElementById('video1'), document.getElementById('video2')];
 const titles = [
-  "Join Dew Diamond at IIJS Premiere 2025",
+  "Join Emirates Gold at IIJS Premiere 2025",
   "A Diamond for Every Moment"
 ];
 const subtitles = [
@@ -63,13 +63,8 @@ window.addEventListener("scroll", () => {
   const navbar = document.getElementById("navbar");
   if (window.scrollY > 50) {
     navbar.classList.add("scrolled");
-    // Close mobile menu when scrolling
-    const navLinks = document.querySelector(".nav-links");
-    const hamburgerMenu = document.getElementById("hamburger-menu");
-    if (navLinks && hamburgerMenu) {
-      navLinks.classList.remove("mobile-menu-open");
-      hamburgerMenu.classList.remove("active");
-    }
+    // Don't automatically close mobile menu when scrolling
+    // Let users control the menu manually
   } else {
     navbar.classList.remove("scrolled");
   }
@@ -80,40 +75,94 @@ document.addEventListener("DOMContentLoaded", () => {
   const hamburgerMenu = document.getElementById("hamburger-menu");
   const navLinks = document.querySelector(".nav-links");
   const navbar = document.getElementById("navbar");
+  let isMenuOpen = false;
 
   if (hamburgerMenu && navLinks) {
+    const mobileCloseBtn = document.getElementById("mobile-close-btn");
+    
+    // Toggle menu function
+    function toggleMenu() {
+      isMenuOpen = !isMenuOpen;
+      
+      if (isMenuOpen) {
+        // Open menu
+        navLinks.classList.add("mobile-menu-open");
+        hamburgerMenu.classList.add("active");
+        // Prevent body scroll when menu is open
+        document.body.style.overflow = 'hidden';
+      } else {
+        // Close menu
+        navLinks.classList.remove("mobile-menu-open");
+        hamburgerMenu.classList.remove("active");
+        // Restore body scroll
+        document.body.style.overflow = 'auto';
+      }
+    }
+
+    // Hamburger menu click handler
     hamburgerMenu.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
-      // Always allow menu toggle on mobile
-      navLinks.classList.toggle("mobile-menu-open");
-      hamburgerMenu.classList.toggle("active");
+      toggleMenu();
     });
 
-    // Close menu when clicking outside
+    // Mobile close button click handler
+    if (mobileCloseBtn) {
+      mobileCloseBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (isMenuOpen) {
+          toggleMenu();
+        }
+      });
+    }
+
+    // Close menu when clicking outside on mobile
     document.addEventListener("click", (e) => {
-      if (!navbar.classList.contains("scrolled") && 
-          navLinks.classList.contains("mobile-menu-open") &&
-          !hamburgerMenu.contains(e.target) && 
-          !navLinks.contains(e.target)) {
-        navLinks.classList.remove("mobile-menu-open");
-        hamburgerMenu.classList.remove("active");
+      if (window.innerWidth <= 768 && 
+          isMenuOpen &&
+          !navbar.contains(e.target) &&
+          e.target !== mobileCloseBtn) {
+        toggleMenu();
       }
     });
 
     // Close menu when clicking on nav links
     navLinks.addEventListener("click", (e) => {
-      if (e.target.tagName === "A" && navLinks.classList.contains("mobile-menu-open")) {
-        navLinks.classList.remove("mobile-menu-open");
-        hamburgerMenu.classList.remove("active");
+      if (e.target.tagName === "A" && isMenuOpen) {
+        toggleMenu();
       }
     });
     
     // Close menu on window resize to larger screen
     window.addEventListener("resize", () => {
-      if (window.innerWidth > 768) {
-        navLinks.classList.remove("mobile-menu-open");
-        hamburgerMenu.classList.remove("active");
+      if (window.innerWidth > 768 && isMenuOpen) {
+        toggleMenu();
+      }
+    });
+
+    // Handle scroll events - don't auto-close menu during scroll
+    let scrollTimeout;
+    window.addEventListener("scroll", () => {
+      // Clear any existing timeout
+      clearTimeout(scrollTimeout);
+      
+      // Don't close menu during scroll - let user control it manually
+      // Only update navbar background
+      scrollTimeout = setTimeout(() => {
+        const navbar = document.getElementById("navbar");
+        if (window.scrollY > 50) {
+          navbar.classList.add("scrolled");
+        } else {
+          navbar.classList.remove("scrolled");
+        }
+      }, 10); // Small delay for better performance
+    });
+
+    // Close menu on escape key
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && isMenuOpen) {
+        toggleMenu();
       }
     });
   }
